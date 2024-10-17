@@ -1,0 +1,13 @@
+# Entornos virtuales de Python
+venv/
+env/
+.venv/
+.env/
+
+# Archivos de configuración de entornos virtuales
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.env
+*.venv
