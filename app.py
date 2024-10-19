@@ -42,20 +42,37 @@ municipios = st.sidebar.multiselect(
     default=['CARTAGENA (CT)', 'MAGANGUÉ', 'TURBACO']
 )
 
+# Filtro por género
+genero = st.sidebar.selectbox('Seleccionar Género', ['Ambos', 'MASCULINO', 'FEMENINO'])
+
 # Aplicar filtros
 df_filtrado = df[(df['FECHA HECHO'].dt.year >= rango_fechas[0]) & (df['FECHA HECHO'].dt.year <= rango_fechas[1])]
 df_filtrado = df_filtrado[df_filtrado['ARMA MEDIO'].isin(tipo_arma)]
 df_filtrado = df_filtrado[df_filtrado['MUNICIPIO'].isin(municipios)]
 
+# Filtro por género
+if genero != 'Ambos':
+    df_filtrado = df_filtrado[df_filtrado['GENERO'].str.contains(genero)]
+
 # Distribuir gráficos en dos columnas
 col1, col2 = st.columns(2)
 
-# Gráfico de barras - Número de incidentes por tipo de arma
-col1.header("Número de Incidentes por Tipo de Arma")
+# Gráfico de barras - Número de incidentes por tipo de arma y género
+col1.header("Número de Incidentes por Tipo de Arma y Género")
 fig_barras, ax = plt.subplots()
-df_arma = df_filtrado.groupby('ARMA MEDIO')['CANTIDAD'].sum().reset_index()
-sns.barplot(x='ARMA MEDIO', y='CANTIDAD', data=df_arma, ax=ax)
+df_arma_genero = df_filtrado.groupby(['ARMA MEDIO', 'GENERO'])['CANTIDAD'].sum().reset_index()
+
+# Crear el gráfico de barras con distinción por género
+sns.barplot(x='ARMA MEDIO', y='CANTIDAD', hue='GENERO', data=df_arma_genero, ax=ax)
+
+# Añadir etiquetas con los totales en las barras
+for p in ax.patches:
+    ax.annotate(f'{p.get_height():.0f}', (p.get_x() + p.get_width() / 2., p.get_height()),
+                ha='center', va='baseline', fontsize=10, color='black', xytext=(0, 3),
+                textcoords='offset points')
+
 ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+ax.set_title("Número de Incidentes por Tipo de Arma y Género")
 col1.pyplot(fig_barras)
 
 # Gráfico de líneas - Evolución de los incidentes a lo largo del tiempo
